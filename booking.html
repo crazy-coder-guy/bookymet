@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Slot Booking</title>
+    <style>
+        .slot {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid black;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .unavailable {
+            background-color: red;
+            cursor: not-allowed;
+        }
+        .available {
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Book a Slot</h1>
+    <div id="calendar">
+        <div class="day" data-day="2024-08-01">
+            <h2>2024-08-01</h2>
+            <div class="slot available" data-time="6:50 PM" onclick="bookSlot(this)">6:50 PM</div>
+            <div class="slot available" data-time="6:55 PM" onclick="bookSlot(this)">6:55 PM</div>
+            <div class="slot available" data-time="7:00 PM" onclick="bookSlot(this)">7:00 PM</div>
+        </div>
+        <div class="day" data-day="2024-08-02">
+            <h2>2024-08-02</h2>
+            <div class="slot available" data-time="6:50 PM" onclick="bookSlot(this)">6:50 PM</div>
+            <div class="slot available" data-time="6:55 PM" onclick="bookSlot(this)">6:55 PM</div>
+            <div class="slot available" data-time="7:00 PM" onclick="bookSlot(this)">7:00 PM</div>
+        </div>
+        <!-- Add more days as needed -->
+    </div>
+
+    <script>
+        const slotsMap = new Map();
+
+        function bookSlot(element) {
+            const day = element.closest('.day').dataset.day;
+            const time = element.dataset.time;
+            const slotKey = `${day}_${time}`;
+
+            if (slotsMap.get(slotKey)) {
+                alert('This slot is currently unavailable.');
+                return;
+            }
+
+            // Mark slot as unavailable
+            element.classList.remove('available');
+            element.classList.add('unavailable');
+            alert(`You have booked the ${time} slot on ${day}.`);
+
+            // Store the slot in the map
+            slotsMap.set(slotKey, true);
+
+            // Calculate the duration until the slot should become available again
+            const slotDateTime = new Date(`${day}T${convertTo24Hour(time)}`);
+            const now = new Date();
+            const delay = slotDateTime - now;
+
+            if (delay > 0) {
+                setTimeout(() => {
+                    element.classList.remove('unavailable');
+                    element.classList.add('available');
+                    alert(`The ${time} slot on ${day} is now available again.`);
+                    slotsMap.delete(slotKey);
+                }, delay);
+            } else {
+                alert("Error: The selected slot time has already passed.");
+            }
+        }
+
+        function convertTo24Hour(time) {
+            let [hours, minutes] = time.split(/[: ]/);
+            const period = time.split(' ')[1];
+
+            if (period === 'PM' && hours !== '12') {
+                hours = parseInt(hours, 10) + 12;
+            } else if (period === 'AM' && hours === '12') {
+                hours = '00';
+            }
+
+            return `${hours}:${minutes}:00`;
+        }
+    </script>
+</body>
+</html>
