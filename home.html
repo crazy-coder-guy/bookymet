@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Navbar</title>
+  <!-- Font Awesome CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Custom CSS for Navbar */
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .navbar-nav .nav-link {
+      margin-left: 15px;
+      font-size: 1.1rem;
+    }
+
+    .profile-btn img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .location-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #007bff;
+    }
+
+    /* Mobile View */
+    @media (max-width: 768px) {
+      .navbar-nav {
+        display: none;
+      }
+    }
+
+    /* Profile Sidebar */
+    .profile-sidebar {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      height: 100%;
+      width: 300px;
+      background-color: #f8f9fa;
+      transition: right 0.3s ease;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+      z-index: 1050;
+    }
+
+    .profile-sidebar.active {
+      right: 0;
+    }
+
+    .profile-sidebar .header {
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      display: flex;
+      align-items: center;
+    }
+
+    .profile-sidebar .header .back-btn {
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .profile-sidebar .profile-info {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .profile-sidebar .profile-info img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      margin-bottom: 10px;
+    }
+
+    .profile-sidebar .profile-info h5 {
+      margin-bottom: 0;
+    }
+
+    /* Fullscreen for Mobile View */
+    @media (max-width: 768px) {
+      .profile-sidebar {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="#">
+        <span id="brand-text">KickSpot</span>
+      </a>
+      <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="#">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Services</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Contact Us</a>
+          </li>
+        </ul>
+      </div>
+      <!-- User Profile and Location -->
+      <div class="d-flex align-items-center">
+        <button class="btn location-btn" type="button" onclick="getLocation()" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to select your location automatically">
+            <i class="fa-solid fa-location-arrow fa-fade"></i> <!-- Font Awesome Icon for location -->
+        </button>        
+        <button class="btn profile-btn" type="button" onclick="toggleProfileSidebar()">
+          <img id="user-profile-img" src="https://t3.ftcdn.net/jpg/06/19/26/46/360_F_619264680_x2PBdGLF54sFe7kTBtAvZnPyXgvaRw0Y.jpg" alt="User Profile">
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Profile Sidebar -->
+  <div id="profileSidebar" class="profile-sidebar">
+    <div class="header">
+      <span class="back-btn" onclick="toggleProfileSidebar()"><i class="fa-solid fa-arrow-left fa-bounce fa-2xs"></i></span> <!-- Back Arrow -->
+      <h5>Profile</h5>
+    </div>
+    <div class="profile-info">
+      <!-- Profile Image Wrapper -->
+      <div class="profile-image-wrapper">
+        <img id="sidebar-profile-img" src="https://t3.ftcdn.net/jpg/06/19/26/46/360_F_619264680_x2PBdGLF54sFe7kTBtAvZnPyXgvaRw0Y.jpg" alt="User Profile">
+        <!-- Camera Icon Button -->
+        <button class="btn btn-outline-primary profile-camera-btn" id="changePhotoBtn">
+          <i class="fa-solid fa-camera"></i>
+        </button>
+      </div>
+      <h5 id="sidebar-profile-name">User Name</h5>
+      <!-- Hidden File Input -->
+      <input type="file" id="fileInput" style="display: none;" accept="image/*">
+    </div>
+  </div>
+
+  <!-- Bootstrap JS (for responsiveness and toggler) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+  
+    const firebaseConfig = {
+      apiKey: "AIzaSyAwgq5oTikQJ5WeCGkgpcCSyMwXunAWdrE",
+      authDomain: "turf-2d4a2.firebaseapp.com",
+      projectId: "turf-2d4a2",
+      storageBucket: "turf-2d4a2.appspot.com",
+      messagingSenderId: "1093579163182",
+      appId: "1:1093579163182:web:9e7e98562765c0462f41bf",
+      databaseURL: "https://turf-2d4a2-default-rtdb.firebaseio.com/"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+    const storage = getStorage(app);
+  
+    // Google Sign-In
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        const user = result.user;
+        const uid = user.uid;
+        set(ref(database, 'users/' + uid), {
+          name: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+          uid: uid,
+          location: null
+        });
+        updateProfile(user.photoURL, user.displayName);
+      })
+      .catch((error) => {
+        console.error("Error signing in:", error);
+      });
+  
+    function updateProfile(photoURL, name) {
+      document.getElementById('user-profile-img').src = photoURL;
+      document.getElementById('sidebar-profile-img').src = photoURL;
+      document.getElementById('sidebar-profile-name').textContent = name;
+    }
+  
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const uid = user.uid;
+        // Check local storage for cached user data
+        const cachedUserData = localStorage.getItem('userData');
+        if (cachedUserData) {
+          const userData = JSON.parse(cachedUserData);
+          updateProfile(userData.photoURL, userData.name);
+        } else {
+          // Fetch user data from the database
+          get(ref(database, 'users/' + uid)).then(snapshot => {
+            if (snapshot.exists()) {
+              const userData = snapshot.val();
+              localStorage.setItem('userData', JSON.stringify(userData));
+              updateProfile(userData.photoURL, userData.name);
+            }
+          }).catch(error => {
+            console.error("Error fetching user data:", error);
+          });
+        }
+      }
+    });
+  
+    window.toggleProfileSidebar = function() {
+      const sidebar = document.getElementById('profileSidebar');
+      sidebar.classList.toggle('active');
+    }
+  
+    window.getLocation = function() {
+      const user = auth.currentUser;
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            reverseGeocode(latitude, longitude, (placeData) => {
+              if (user) {
+                const uid = user.uid;
+                set(ref(database, 'users/' + uid), {
+                  name: user.displayName,
+                  email: user.email,
+                  photoURL: user.photoURL,
+                  uid: uid,
+                  location: {
+                    latitude: latitude,
+                    longitude: longitude,
+                    city: placeData.city,
+                    region: placeData.region
+                  }
+                });
+                localStorage.setItem('userData', JSON.stringify({
+                  name: user.displayName,
+                  email: user.email,
+                  photoURL: user.photoURL,
+                  uid: uid,
+                  location: {
+                    latitude: latitude,
+                    longitude: longitude,
+                    city: placeData.city,
+                    region: placeData.region
+                  }
+                }));
+              }
+              alert(`Latitude: ${latitude}, Longitude: ${longitude}\nCity: ${placeData.city}\nRegion: ${placeData.region}`);
+            });
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+            alert("Error getting location. Please enable location services.");
+          }
+        );
+      } else {
+        alert("Geolocation is not supported by this browser.");
+      }
+    }
+  
+    function reverseGeocode(lat, lng, callback) {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.address) {
+            const address = data.address;
+            const placeData = {
+              city: address.city || address.town || address.village || 'Unknown City',
+              region: address.state || address.region || 'Unknown Region'
+            };
+            callback(placeData);
+          } else {
+            callback({ city: 'No city found', region: 'No region found' });
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching geocoding data:', error);
+          callback({ city: 'Error retrieving city', region: 'Error retrieving region' });
+        });
+    }
+  
+    document.addEventListener('DOMContentLoaded', function () {
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+    });
+  
+    function showAlert(message, type) {
+      const alertTypes = ['success', 'error', 'info', 'warning'];
+      if (!alertTypes.includes(type)) {
+        console.error('Invalid alert type');
+        return;
+      }
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert ${type}`;
+      alertDiv.innerHTML = `
+        ${message}
+        <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+      `;
+      document.body.appendChild(alertDiv);
+      setTimeout(() => {
+        alertDiv.style.opacity = '0';
+        setTimeout(() => alertDiv.remove(), 500);
+      }, 5000);
+    }
+  
+    function updateProfilePhoto(file) {
+      const user = auth.currentUser;
+      if (user) {
+        const uid = user.uid;
+        const profilePicRef = storageRef(storage, `profile_pictures/${uid}.jpg`);
+        uploadBytes(profilePicRef, file).then(snapshot => {
+          getDownloadURL(snapshot.ref).then(downloadURL => {
+            set(ref(database, 'users/' + uid), {
+              name: user.displayName,
+              email: user.email,
+              photoURL: downloadURL,
+              uid: uid,
+              location: null
+            }).then(() => {
+              updateProfile(downloadURL, user.displayName);
+              localStorage.setItem('userData', JSON.stringify({
+                name: user.displayName,
+                email: user.email,
+                photoURL: downloadURL,
+                uid: uid,
+                location: null
+              }));
+            }).catch(error => {
+              console.error("Error updating photo URL in database:", error);
+            });
+          }).catch(error => {
+            console.error("Error getting download URL:", error);
+          });
+        }).catch(error => {
+          console.error("Error uploading file:", error);
+        });
+      }
+    }
+  
+    document.getElementById('changePhotoBtn').addEventListener('click', () => {
+      document.getElementById('fileInput').click();
+    });
+  
+    document.getElementById('fileInput').addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        updateProfilePhoto(file);
+      }
+    });
+    
+  </script>
+  <script>
+   
+  </script>
+</body>
+</html>
