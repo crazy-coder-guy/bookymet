@@ -465,6 +465,31 @@
     }
     // Attach function to global window object
     window.toggleProfileSidebar = toggleProfileSidebar;
+    // Show Profile Image
+function displayUserProfileImage(user) {
+  const profileImageContainer = document.getElementById('profile-image-container');
+  const profileImage = document.getElementById('profile-image');
+  
+  if (profileImage) {
+    profileImage.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
+    profileImageContainer.style.display = 'block'; // Show the image
+  } else {
+    const img = document.createElement('img');
+    img.id = 'profile-image';
+    img.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
+    profileImageContainer.style.display = 'block'; // Show the image container
+    profileImageContainer.appendChild(img); // Append profile image to container
+  }
+}
+
+// Hide Profile Image
+function hideProfileImage() {
+  const profileImageContainer = document.getElementById('profile-image-container');
+  if (profileImageContainer) {
+    profileImageContainer.style.display = 'none'; // Hide the image container
+  }
+}
+
   </script>
   
 </body>
