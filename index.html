@@ -107,223 +107,241 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
-    import { 
-      getAuth, 
-      createUserWithEmailAndPassword, 
-      signInWithEmailAndPassword, 
-      signInWithPopup, 
-      GoogleAuthProvider, 
-      FacebookAuthProvider 
-    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-  
-    const firebaseConfig = {
-      apiKey: "AIzaSyAwgq5oTikQJ5WeCGkgpcCSyMwXunAWdrE",
-      authDomain: "turf-2d4a2.firebaseapp.com",
-      projectId: "turf-2d4a2",
-      storageBucket: "turf-2d4a2.appspot.com",
-      messagingSenderId: "1093579163182",
-      appId: "1:1093579163182:web:9e7e98562765c0462f41bf"
-    };
-  
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
-  
-    // Password validation function
-    function validatePassword(password) {
-      const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
-      return regex.test(password);
-    }
-  
-    // Sign Up with Email and Password
-    document.getElementById('signup-form').addEventListener('submit', function(evt) {
-      evt.preventDefault();
-      const email = document.getElementById('signup-email').value;
-      const password = document.getElementById('signup-password').value;
-      const name = document.getElementById('name').value;
-  
-      if (!validatePassword(password)) {
-        showNotification("Password must be at least 6 characters long, and include at least one uppercase letter, one number, and one special character.", 'error');
-        return;
-      }
-  
-      createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          set(ref(db, 'UsersAuthList/' + user.uid), {
-            name: name,
-            email: email
-          });
-          console.log('Sign-up successful. Redirecting to home.html');
-          window.location.href = 'home.html'; // Redirect to the main page after sign up
-        })
-        .catch((error) => {
-          showNotification("Error: " + error.message, 'error');
-          console.error(error.code, error.message); // Log error details for debugging
-        });
-    });
-  
-    // Sign In with Email and Password
-    document.getElementById('signin-form').addEventListener('submit', function(evt) {
-      evt.preventDefault();
-      const email = document.getElementById('signin-email').value;
-      const password = document.getElementById('signin-password').value;
-  
-      signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          console.log('Sign-in successful. Redirecting to home.html');
-          window.location.href = 'home.html'; // Redirect to the main page after sign in
-        })
-        .catch((error) => {
-          showNotification("Error: " + error.message, 'error');
-          console.error(error.code, error.message); // Log error details for debugging
-        });
-    });
-  
-    // Google Sign-In for Sign Up
-    document.getElementById('google-sign-in-signup').addEventListener('click', function() {
-      const provider = new GoogleAuthProvider();
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          const user = result.user;
-          displayUserProfileImage(user);
-          console.log('Google Sign-in successful. Redirecting to home.html');
-          window.location.href = 'home.html'; // Redirect to the main page after Google sign in
-        })
-        .catch((error) => {
-          showNotification("Error: " + error.message, 'error');
-          console.error(error.code, error.message); // Log error details for debugging
-        });
-    });
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  FacebookAuthProvider 
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
-    // Google Sign-In for Sign In
-    document.getElementById('google-sign-in-signin').addEventListener('click', function() {
-      const provider = new GoogleAuthProvider();
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          const user = result.user;
-          displayUserProfileImage(user);
-          console.log('Google Sign-in successful. Redirecting to home.html');
-          window.location.href = 'home.html'; // Redirect to the main page after Google sign in
-        })
-        .catch((error) => {
-          showNotification("Error: " + error.message, 'error');
-          console.error(error.code, error.message); // Log error details for debugging
-        });
-    });
+const firebaseConfig = {
+  apiKey: "AIzaSyAwgq5oTikQJ5WeCGkgpcCSyMwXunAWdrE",
+  authDomain: "turf-2d4a2.firebaseapp.com",
+  projectId: "turf-2d4a2",
+  storageBucket: "turf-2d4a2.appspot.com",
+  messagingSenderId: "1093579163182",
+  appId: "1:1093579163182:web:9e7e98562765c0462f41bf"
+};
 
-    // Facebook Sign-In for Sign Up
-    document.getElementById('facebook-sign-in-signup').addEventListener('click', function() {
-      const provider = new FacebookAuthProvider();
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          const user = result.user;
-          console.log('Facebook Sign-in successful. Redirecting to home.html');
-          window.location.href = 'home.html'; // Redirect to the main page after Facebook sign in
-        })
-        .catch((error) => {
-          showNotification("Error: " + error.message, 'error');
-          console.error(error.code, error.message); // Log error details for debugging
-        });
-    });
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
 
-    // Facebook Sign-In for Sign In
-    document.getElementById('facebook-sign-in-signin').addEventListener('click', function() {
-      const provider = new FacebookAuthProvider();
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          const user = result.user;
-          console.log('Facebook Sign-in successful. Redirecting to home.html');
-          window.location.href = 'home.html'; // Redirect to the main page after Facebook sign in
-        })
-        .catch((error) => {
-          showNotification("Error: " + error.message, 'error');
-          console.error(error.code, error.message); // Log error details for debugging
-        });
-    });
+// Password validation function
+function validatePassword(password) {
+  const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+  return regex.test(password);
+}
 
-    // Display User Profile Image
-    function displayUserProfileImage(user) {
-      const profileImage = document.getElementById('profile-image');
-      if (profileImage) {
-        profileImage.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
-      } else {
-        const img = document.createElement('img');
-        img.id = 'profile-image';
-        img.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
-        document.body.appendChild(img); // Append profile image to body or a specific element
-      }
-    }
+// Show Profile Image
+function displayUserProfileImage(user) {
+  const profileImageContainer = document.getElementById('profile-image-container');
+  const profileImage = document.getElementById('profile-image');
+  
+  if (profileImage) {
+    profileImage.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
+    profileImageContainer.style.display = 'block'; // Show the image
+  } else {
+    const img = document.createElement('img');
+    img.id = 'profile-image';
+    img.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
+    profileImageContainer.style.display = 'block'; // Show the image container
+    profileImageContainer.appendChild(img); // Append profile image to container
+  }
+}
 
-    // Function to create and show a notification
-    function showNotification(message, type = 'error') {
-      const container = document.getElementById('notification-container');
-  
-      // Create notification element
-      const notification = document.createElement('div');
-      notification.className = `notification ${type}`;
-      notification.innerHTML = `
-        <span>${message}</span>
-        <button class="close-btn">&times;</button>
-      `;
-  
-      // Append notification to container
-      container.appendChild(notification);
-  
-      // Show notification
-      setTimeout(() => notification.classList.add('show'), 10);
-  
-      // Hide and remove notification after 5 seconds
-      setTimeout(() => {
-        notification.classList.add('hide');
-        setTimeout(() => notification.remove(), 500);
-      }, 5000);
-  
-      // Close button functionality
-      notification.querySelector('.close-btn').addEventListener('click', () => {
-        notification.classList.add('hide');
-        setTimeout(() => notification.remove(), 500);
+// Hide Profile Image
+function hideProfileImage() {
+  const profileImageContainer = document.getElementById('profile-image-container');
+  if (profileImageContainer) {
+    profileImageContainer.style.display = 'none'; // Hide the image container
+  }
+}
+
+// Sign Up with Email and Password
+document.getElementById('signup-form').addEventListener('submit', function(evt) {
+  evt.preventDefault();
+  const email = document.getElementById('signup-email').value;
+  const password = document.getElementById('signup-password').value;
+  const name = document.getElementById('name').value;
+
+  if (!validatePassword(password)) {
+    showNotification("Password must be at least 6 characters long, and include at least one uppercase letter, one number, and one special character.", 'error');
+    return;
+  }
+
+  createUserWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      set(ref(db, 'UsersAuthList/' + user.uid), {
+        name: name,
+        email: email
       });
-    }
-  
-    // Tab switching functionality
-    document.querySelectorAll('.switch-tab').forEach(link => {
-      link.addEventListener('click', function(evt) {
-        evt.preventDefault();
-        
-        const tabId = this.getAttribute('data-tab');
-        
-        // Remove active class from all tab-content
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        
-        // Add active class to the selected tab-content
-        document.getElementById(tabId).classList.add('active');
-      });
+      hideProfileImage(); // Ensure profile image is hidden
+      console.log('Sign-up successful. Redirecting to home.html');
+      window.location.href = 'home.html'; // Redirect to the main page after sign up
+    })
+    .catch((error) => {
+      showNotification("Error: " + error.message, 'error');
+      console.error(error.code, error.message); // Log error details for debugging
     });
-  
-    // Password Toggle Script
-    function setupPasswordToggle(toggleIconId, passwordInputId) {
-      const toggleIcon = document.getElementById(toggleIconId);
-      const passwordInput = document.getElementById(passwordInputId);
-  
-      toggleIcon.addEventListener('click', () => {
-        if (passwordInput.type === 'password') {
-          passwordInput.type = 'text';
-          toggleIcon.classList.remove('fa-eye');
-          toggleIcon.classList.add('fa-eye-slash');
-        } else {
-          passwordInput.type = 'password';
-          toggleIcon.classList.remove('fa-eye-slash');
-          toggleIcon.classList.add('fa-eye');
-        }
-      });
+});
+
+// Sign In with Email and Password
+document.getElementById('signin-form').addEventListener('submit', function(evt) {
+  evt.preventDefault();
+  const email = document.getElementById('signin-email').value;
+  const password = document.getElementById('signin-password').value;
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => {
+      console.log('Sign-in successful. Redirecting to home.html');
+      window.location.href = 'home.html'; // Redirect to the main page after sign in
+    })
+    .catch((error) => {
+      showNotification("Error: " + error.message, 'error');
+      console.error(error.code, error.message); // Log error details for debugging
+    });
+});
+
+// Google Sign-In for Sign Up
+document.getElementById('google-sign-in-signup').addEventListener('click', function() {
+  const provider = new GoogleAuthProvider();
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      const user = result.user;
+      displayUserProfileImage(user);
+      hideProfileImage(); // Ensure profile image is hidden on sign up page
+      console.log('Google Sign-in successful. Redirecting to home.html');
+      window.location.href = 'home.html'; // Redirect to the main page after Google sign in
+    })
+    .catch((error) => {
+      showNotification("Error: " + error.message, 'error');
+      console.error(error.code, error.message); // Log error details for debugging
+    });
+});
+
+// Google Sign-In for Sign In
+document.getElementById('google-sign-in-signin').addEventListener('click', function() {
+  const provider = new GoogleAuthProvider();
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      const user = result.user;
+      displayUserProfileImage(user);
+      console.log('Google Sign-in successful. Redirecting to home.html');
+      window.location.href = 'home.html'; // Redirect to the main page after Google sign in
+    })
+    .catch((error) => {
+      showNotification("Error: " + error.message, 'error');
+      console.error(error.code, error.message); // Log error details for debugging
+    });
+});
+
+// Facebook Sign-In for Sign Up
+document.getElementById('facebook-sign-in-signup').addEventListener('click', function() {
+  const provider = new FacebookAuthProvider();
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      const user = result.user;
+      displayUserProfileImage(user);
+      hideProfileImage(); // Ensure profile image is hidden on sign up page
+      console.log('Facebook Sign-in successful. Redirecting to home.html');
+      window.location.href = 'home.html'; // Redirect to the main page after Facebook sign in
+    })
+    .catch((error) => {
+      showNotification("Error: " + error.message, 'error');
+      console.error(error.code, error.message); // Log error details for debugging
+    });
+});
+
+// Facebook Sign-In for Sign In
+document.getElementById('facebook-sign-in-signin').addEventListener('click', function() {
+  const provider = new FacebookAuthProvider();
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      const user = result.user;
+      displayUserProfileImage(user);
+      console.log('Facebook Sign-in successful. Redirecting to home.html');
+      window.location.href = 'home.html'; // Redirect to the main page after Facebook sign in
+    })
+    .catch((error) => {
+      showNotification("Error: " + error.message, 'error');
+      console.error(error.code, error.message); // Log error details for debugging
+    });
+});
+
+// Function to create and show a notification
+function showNotification(message, type = 'error') {
+  const container = document.getElementById('notification-container');
+
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `
+    <span>${message}</span>
+    <button class="close-btn">&times;</button>
+  `;
+
+  // Append notification to container
+  container.appendChild(notification);
+
+  // Show notification
+  setTimeout(() => notification.classList.add('show'), 10);
+
+  // Hide and remove notification after 5 seconds
+  setTimeout(() => {
+    notification.classList.add('hide');
+    setTimeout(() => notification.remove(), 500);
+  }, 5000);
+
+  // Close button functionality
+  notification.querySelector('.close-btn').addEventListener('click', () => {
+    notification.classList.add('hide');
+    setTimeout(() => notification.remove(), 500);
+  });
+}
+
+// Tab switching functionality
+document.querySelectorAll('.switch-tab').forEach(link => {
+  link.addEventListener('click', function(evt) {
+    evt.preventDefault();
+    
+    const tabId = this.getAttribute('data-tab');
+    
+    // Remove active class from all tab-content
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to the selected tab-content
+    document.getElementById(tabId).classList.add('active');
+  });
+});
+
+// Password Toggle Script
+function setupPasswordToggle(toggleIconId, passwordInputId) {
+  const toggleIcon = document.getElementById(toggleIconId);
+  const passwordInput = document.getElementById(passwordInputId);
+
+  toggleIcon.addEventListener('click', () => {
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      toggleIcon.classList.remove('fa-eye');
+      toggleIcon.classList.add('fa-eye-slash');
+    } else {
+      passwordInput.type = 'password';
+      toggleIcon.classList.remove('fa-eye-slash');
+      toggleIcon.classList.add('fa-eye');
     }
-  
-    // Setup password toggle for both sign-up and sign-in forms
-    setupPasswordToggle('signup-toggle-icon', 'signup-password');
-    setupPasswordToggle('signin-toggle-icon', 'signin-password');
+  });
+}
+
+// Setup password toggle for both sign-up and sign-in forms
+setupPasswordToggle('signup-toggle-icon', 'signup-password');
+setupPasswordToggle('signin-toggle-icon', 'signin-password');
+
   </script>
 </body>
 </html>
