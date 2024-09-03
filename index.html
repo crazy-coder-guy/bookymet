@@ -19,61 +19,61 @@
 </head>
 <body>
    <!-- Sign Up Form -->
-<div class="tab-content active" id="signup">
-  <h3>Sign Up</h3>
-  <p>Let's join us! Create an account</p>
-  <form id="signup-form">
-    <div class="social-buttons">
-      <button id="google-sign-in-signup" type="button">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">Google
-      </button>
-      <button id="facebook-sign-in-signup" type="button">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook Logo">Facebook
-      </button>
-    </div>
-    <div class="form-group">
-      <input type="text" id="name" placeholder="Enter your Name" required>
-    </div>
-    <div class="form-group">
-      <input type="email" id="signup-email" placeholder="Enter your email" required>
-    </div>
-    <div class="form-group">
-      <div class="password-container">
-        <input type="password" id="signup-password" class="password-input" placeholder="Enter your password" required>
-        <i id="signup-toggle-icon" class="toggle-icon fas fa-eye"></i>
+   <div class="tab-content active" id="signup">
+    <h3>Sign Up</h3>
+    <p>Let's join us! Create an account</p>
+    <form id="signup-form">
+      <div class="social-buttons">
+        <button id="google-sign-in-signup" type="button">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">Google
+        </button>
+        <button id="facebook-sign-in-signup" type="button">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook Logo">Facebook
+        </button>
       </div>
-    </div>
-    <button class="login-button" type="submit">Sign Up</button>
-    <p class="signup-link">Already have an account? <a href="#" class="switch-tab" data-tab="signin">Sign in</a></p>
-  </form>
-</div>
+      <div class="form-group">
+        <input type="text" id="name" placeholder="Enter your Name" required>
+      </div>
+      <div class="form-group">
+        <input type="email" id="signup-email" placeholder="Enter your email" required>
+      </div>
+      <div class="form-group">
+        <div class="password-container">
+          <input type="password" id="signup-password" class="password-input" placeholder="Enter your password" required>
+          <i id="signup-toggle-icon" class="toggle-icon fas fa-eye"></i>
+        </div>
+      </div>
+      <button class="login-button" type="submit">Sign Up</button>
+      <p class="signup-link">Already have an account? <a href="#" class="switch-tab" data-tab="signin">Sign in</a></p>
+    </form>
+  </div>
 
-<!-- Sign In Form -->
-<div class="tab-content" id="signin">
-  <h3>Sign In</h3>
-  <p>Welcome back!</p>
-  <form id="signin-form">
-    <div class="social-buttons">
-      <button id="google-sign-in-signin" type="button">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">Google
-      </button>
-      <button id="facebook-sign-in-signin" type="button">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook Logo">Facebook
-      </button>
-    </div>
-    <div class="form-group">
-      <input type="email" id="signin-email" placeholder="Enter your email" required>
-    </div>
-    <div class="form-group">
-      <div class="password-container">
-        <input type="password" id="signin-password" class="password-input" placeholder="Enter your password" required>
-        <i id="signin-toggle-icon" class="toggle-icon fas fa-eye"></i>
+  <!-- Sign In Form -->
+  <div class="tab-content" id="signin">
+    <h3>Sign In</h3>
+    <p>Welcome back!</p>
+    <form id="signin-form">
+      <div class="social-buttons">
+        <button id="google-sign-in-signin" type="button">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">Google
+        </button>
+        <button id="facebook-sign-in-signin" type="button">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook Logo">Facebook
+        </button>
       </div>
-    </div>
-    <button class="login-button" type="submit">Sign In</button>
-    <p class="signup-link">Don't have an account? <a href="#" class="switch-tab" data-tab="signup">Sign up</a></p>
-  </form>
-</div>
+      <div class="form-group">
+        <input type="email" id="signin-email" placeholder="Enter your email" required>
+      </div>
+      <div class="form-group">
+        <div class="password-container">
+          <input type="password" id="signin-password" class="password-input" placeholder="Enter your password" required>
+          <i id="signin-toggle-icon" class="toggle-icon fas fa-eye"></i>
+        </div>
+      </div>
+      <button class="login-button" type="submit">Sign In</button>
+      <p class="signup-link">Don't have an account? <a href="#" class="switch-tab" data-tab="signup">Sign up</a></p>
+    </form>
+  </div>
 
   <!-- Notification Container -->
   <div id="notification-container" class="notification-container"></div>
@@ -91,12 +91,12 @@
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
   
     const firebaseConfig = {
-    apiKey: "AIzaSyAwgq5oTikQJ5WeCGkgpcCSyMwXunAWdrE",
-    authDomain: "turf-2d4a2.firebaseapp.com",
-    projectId: "turf-2d4a2",
-    storageBucket: "turf-2d4a2.appspot.com",
-    messagingSenderId: "1093579163182",
-    appId: "1:1093579163182:web:9e7e98562765c0462f41bf"
+      apiKey: "AIzaSyAwgq5oTikQJ5WeCGkgpcCSyMwXunAWdrE",
+      authDomain: "turf-2d4a2.firebaseapp.com",
+      projectId: "turf-2d4a2",
+      storageBucket: "turf-2d4a2.appspot.com",
+      messagingSenderId: "1093579163182",
+      appId: "1:1093579163182:web:9e7e98562765c0462f41bf"
     };
   
     // Initialize Firebase
@@ -129,7 +129,7 @@
             name: name,
             email: email
           });
-          console.log('Sign-up successful. Redirecting to main.html');
+          console.log('Sign-up successful. Redirecting to home.html');
           window.location.href = 'home.html'; // Redirect to the main page after sign up
         })
         .catch((error) => {
@@ -146,7 +146,7 @@
   
       signInWithEmailAndPassword(auth, email, password)
         .then(() => {
-          console.log('Sign-in successful. Redirecting to main.html');
+          console.log('Sign-in successful. Redirecting to home.html');
           window.location.href = 'home.html'; // Redirect to the main page after sign in
         })
         .catch((error) => {
@@ -155,65 +155,76 @@
         });
     });
   
-   // Google Sign-In for Sign Up
-document.getElementById('google-sign-in-signup').addEventListener('click', function() {
-  const provider = new GoogleAuthProvider();
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      const user = result.user;
-      console.log('Google Sign-in successful. Redirecting to home.html');
-      window.location.href = 'home.html'; // Redirect to the main page after Google sign in
-    })
-    .catch((error) => {
-      showNotification("Error: " + error.message, 'error');
-      console.error(error.code, error.message); // Log error details for debugging
+    // Google Sign-In for Sign Up
+    document.getElementById('google-sign-in-signup').addEventListener('click', function() {
+      const provider = new GoogleAuthProvider();
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          displayUserProfileImage(user);
+          console.log('Google Sign-in successful. Redirecting to home.html');
+          window.location.href = 'home.html'; // Redirect to the main page after Google sign in
+        })
+        .catch((error) => {
+          showNotification("Error: " + error.message, 'error');
+          console.error(error.code, error.message); // Log error details for debugging
+        });
     });
-});
 
-// Google Sign-In for Sign In
-document.getElementById('google-sign-in-signin').addEventListener('click', function() {
-  const provider = new GoogleAuthProvider();
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      const user = result.user;
-      console.log('Google Sign-in successful. Redirecting to home.html');
-      window.location.href = 'home.html'; // Redirect to the main page after Google sign in
-    })
-    .catch((error) => {
-      showNotification("Error: " + error.message, 'error');
-      console.error(error.code, error.message); // Log error details for debugging
+    // Google Sign-In for Sign In
+    document.getElementById('google-sign-in-signin').addEventListener('click', function() {
+      const provider = new GoogleAuthProvider();
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          displayUserProfileImage(user);
+          console.log('Google Sign-in successful. Redirecting to home.html');
+          window.location.href = 'home.html'; // Redirect to the main page after Google sign in
+        })
+        .catch((error) => {
+          showNotification("Error: " + error.message, 'error');
+          console.error(error.code, error.message); // Log error details for debugging
+        });
     });
-});
 
-// Facebook Sign-In for Sign Up
-document.getElementById('facebook-sign-in-signup').addEventListener('click', function() {
-  const provider = new FacebookAuthProvider();
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      const user = result.user;
-      console.log('Facebook Sign-in successful. Redirecting to home.html');
-      window.location.href = 'home.html'; // Redirect to the main page after Facebook sign in
-    })
-    .catch((error) => {
-      showNotification("Error: " + error.message, 'error');
-      console.error(error.code, error.message); // Log error details for debugging
+    // Facebook Sign-In for Sign Up
+    document.getElementById('facebook-sign-in-signup').addEventListener('click', function() {
+      const provider = new FacebookAuthProvider();
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          console.log('Facebook Sign-in successful. Redirecting to home.html');
+          window.location.href = 'home.html'; // Redirect to the main page after Facebook sign in
+        })
+        .catch((error) => {
+          showNotification("Error: " + error.message, 'error');
+          console.error(error.code, error.message); // Log error details for debugging
+        });
     });
-});
 
-// Facebook Sign-In for Sign In
-document.getElementById('facebook-sign-in-signin').addEventListener('click', function() {
-  const provider = new FacebookAuthProvider();
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      const user = result.user;
-      console.log('Facebook Sign-in successful. Redirecting to home.html');
-      window.location.href = 'home.html'; // Redirect to the main page after Facebook sign in
-    })
-    .catch((error) => {
-      showNotification("Error: " + error.message, 'error');
-      console.error(error.code, error.message); // Log error details for debugging
+    // Facebook Sign-In for Sign In
+    document.getElementById('facebook-sign-in-signin').addEventListener('click', function() {
+      const provider = new FacebookAuthProvider();
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          console.log('Facebook Sign-in successful. Redirecting to home.html');
+          window.location.href = 'home.html'; // Redirect to the main page after Facebook sign in
+        })
+        .catch((error) => {
+          showNotification("Error: " + error.message, 'error');
+          console.error(error.code, error.message); // Log error details for debugging
+        });
     });
-});
+
+    // Display User Profile Image
+    function displayUserProfileImage(user) {
+      const profileImage = document.createElement('img');
+      profileImage.id = 'profile-image';
+      profileImage.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
+      document.body.appendChild(profileImage); // Append profile image to body or a specific element
+    }
+
     // Function to create and show a notification
     function showNotification(message, type = 'error') {
       const container = document.getElementById('notification-container');
@@ -282,6 +293,5 @@ document.getElementById('facebook-sign-in-signin').addEventListener('click', fun
     setupPasswordToggle('signup-toggle-icon', 'signup-password');
     setupPasswordToggle('signin-toggle-icon', 'signin-password');
   </script>
-  
 </body>
 </html>
