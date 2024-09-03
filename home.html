@@ -157,7 +157,7 @@
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
     import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
   
@@ -176,7 +176,8 @@
     const auth = getAuth(app);
     const database = getDatabase(app);
     const storage = getStorage(app);
-  
+    const DEFAULT_PROFILE_IMAGE_URL = 'https://media.istockphoto.com/id/1495088043/vector/user-profile-icon-avatar-or-person-icon-profile-picture-portrait-symbol-default-portrait.jpg?s=612x612&w=0&k=20&c=dhV2p1JwmloBTOaGAtaA3AW1KSnjsdMt7-U_3EZElZ0=';
+
     // Google Sign-In
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
@@ -186,50 +187,70 @@
         set(ref(database, 'users/' + uid), {
           name: user.displayName,
           email: user.email,
-          photoURL: user.photoURL,
+          photoURL: user.photoURL || DEFAULT_PROFILE_IMAGE_URL,
           uid: uid,
           location: null
         });
-        updateProfile(user.photoURL, user.displayName);
+        updateProfile(user.photoURL || DEFAULT_PROFILE_IMAGE_URL, user.displayName);
       })
       .catch((error) => {
         console.error("Error signing in:", error);
       });
-  
+
+    // Email/Password Sign-Up
+    function signUpWithEmailPassword(email, password) {
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          const uid = user.uid;
+
+          const photoURL = user.photoURL || DEFAULT_PROFILE_IMAGE_URL;
+
+          set(ref(database, 'users/' + uid), {
+            name: user.displayName || 'New User',
+            email: user.email,
+            photoURL: photoURL,
+            uid: uid,
+            location: null
+          })
+          .then(() => {
+            updateProfile(photoURL, user.displayName || 'New User');
+          })
+          .catch((error) => {
+            console.error("Error saving user data:", error);
+          });
+        })
+        .catch((error) => {
+          console.error("Error signing up:", error);
+        });
+    }
+
     function updateProfile(photoURL, name) {
       document.getElementById('user-profile-img').src = photoURL;
       document.getElementById('sidebar-profile-img').src = photoURL;
       document.getElementById('sidebar-profile-name').textContent = name;
     }
-  
+
     onAuthStateChanged(auth, (user) => {
       if (user) {
         const uid = user.uid;
-        // Check local storage for cached user data
-        const cachedUserData = localStorage.getItem('userData');
-        if (cachedUserData) {
-          const userData = JSON.parse(cachedUserData);
-          updateProfile(userData.photoURL, userData.name);
-        } else {
-          // Fetch user data from the database
-          get(ref(database, 'users/' + uid)).then(snapshot => {
-            if (snapshot.exists()) {
-              const userData = snapshot.val();
-              localStorage.setItem('userData', JSON.stringify(userData));
-              updateProfile(userData.photoURL, userData.name);
-            }
-          }).catch(error => {
-            console.error("Error fetching user data:", error);
-          });
-        }
+        get(ref(database, 'users/' + uid)).then(snapshot => {
+          if (snapshot.exists()) {
+            const userData = snapshot.val();
+            localStorage.setItem('userData', JSON.stringify(userData));
+            updateProfile(userData.photoURL, userData.name);
+          }
+        }).catch(error => {
+          console.error("Error fetching user data:", error);
+        });
       }
     });
-  
+
     window.toggleProfileSidebar = function() {
       const sidebar = document.getElementById('profileSidebar');
       sidebar.classList.toggle('active');
     }
-  
+
     window.getLocation = function() {
       const user = auth.currentUser;
       if (navigator.geolocation) {
@@ -242,7 +263,7 @@
                 set(ref(database, 'users/' + uid), {
                   name: user.displayName,
                   email: user.email,
-                  photoURL: user.photoURL,
+                  photoURL: user.photoURL || DEFAULT_PROFILE_IMAGE_URL,
                   uid: uid,
                   location: {
                     latitude: latitude,
@@ -254,7 +275,7 @@
                 localStorage.setItem('userData', JSON.stringify({
                   name: user.displayName,
                   email: user.email,
-                  photoURL: user.photoURL,
+                  photoURL: user.photoURL || DEFAULT_PROFILE_IMAGE_URL,
                   uid: uid,
                   location: {
                     latitude: latitude,
@@ -276,7 +297,7 @@
         alert("Geolocation is not supported by this browser.");
       }
     }
-  
+
     function reverseGeocode(lat, lng, callback) {
       const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
       fetch(url)
@@ -298,14 +319,14 @@
           callback({ city: 'Error retrieving city', region: 'Error retrieving region' });
         });
     }
-  
+
     document.addEventListener('DOMContentLoaded', function () {
       var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
       });
     });
-  
+
     function showAlert(message, type) {
       const alertTypes = ['success', 'error', 'info', 'warning'];
       if (!alertTypes.includes(type)) {
@@ -324,7 +345,7 @@
         setTimeout(() => alertDiv.remove(), 500);
       }, 5000);
     }
-  
+
     function updateProfilePhoto(file) {
       const user = auth.currentUser;
       if (user) {
@@ -358,11 +379,11 @@
         });
       }
     }
-  
+
     document.getElementById('changePhotoBtn').addEventListener('click', () => {
       document.getElementById('fileInput').click();
     });
-  
+
     document.getElementById('fileInput').addEventListener('change', (event) => {
       const file = event.target.files[0];
       if (file) {
@@ -370,9 +391,6 @@
       }
     });
     
-  </script>
-  <script>
-   
   </script>
 </body>
 </html>
