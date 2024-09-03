@@ -277,23 +277,6 @@
         });
     });
 
-    // Display User Profile Image
-    function displayUserProfileImage(user) {
-      const profileImageContainer = document.getElementById('profile-image-container');
-      const profileImage = document.getElementById('profile-image');
-
-      if (profileImage) {
-        profileImage.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
-      } else {
-        const img = document.createElement('img');
-        img.id = 'profile-image';
-        img.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
-        document.getElementById('profile-image-container').appendChild(img);
-      }
-
-      profileImageContainer.style.display = 'block'; // Show profile image container
-    }
-
     // Function to create and show a notification
     function showNotification(message, type = 'error') {
       const container = document.getElementById('notification-container');
