@@ -28,6 +28,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+    .notification.show {
+      opacity: 1;
+    }
+    .notification.hide {
+      opacity: 0;
     }
     .notification.error {
       background: #e74c3c;
@@ -40,6 +48,26 @@
       border: none;
       color: #fff;
       font-size: 16px;
+      cursor: pointer;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .password-container {
+      position: relative;
+    }
+    .password-input {
+      width: 100%;
+      padding: 10px;
+    }
+    .toggle-icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
       cursor: pointer;
     }
   </style>
@@ -101,11 +129,11 @@
       <p class="signup-link">Don't have an account? <a href="#" class="switch-tab" data-tab="signup">Sign up</a></p>
     </form>
   </div>
-  <!-- Profile Image Container -->
-<div id="profile-image-container" style="display: none; text-align: center; margin-top: 20px;">
-  <img id="profile-image" src="" alt="Profile Image" style="border-radius: 50%; width: 100px; height: 100px; object-fit: cover;">
-</div>
 
+  <!-- Profile Image Container -->
+  <div id="profile-image-container" style="display: none; text-align: center; margin-top: 20px;">
+    <img id="profile-image" src="" alt="Profile Image" style="border-radius: 50%; width: 100px; height: 100px; object-fit: cover;">
+  </div>
 
   <!-- Notification Container -->
   <div id="notification-container" class="notification-container"></div>
@@ -150,7 +178,7 @@
       const name = document.getElementById('name').value;
   
       if (!validatePassword(password)) {
-        showNotification("Password must be at least 6 characters long, and include at least one uppercase letter, one number, and one special character.", 'error');
+        showNotification("Password must be at least 6 characters long and include at least one uppercase letter, one number, and one special character.", 'error');
         return;
       }
   
@@ -251,15 +279,19 @@
 
     // Display User Profile Image
     function displayUserProfileImage(user) {
+      const profileImageContainer = document.getElementById('profile-image-container');
       const profileImage = document.getElementById('profile-image');
+
       if (profileImage) {
         profileImage.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
       } else {
         const img = document.createElement('img');
         img.id = 'profile-image';
         img.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
-        document.body.appendChild(img); // Append profile image to body or a specific element
+        document.getElementById('profile-image-container').appendChild(img);
       }
+
+      profileImageContainer.style.display = 'block'; // Show profile image container
     }
 
     // Function to create and show a notification
@@ -325,28 +357,7 @@
         }
       });
     }
-    // Display User Profile Image
-function displayUserProfileImage(user) {
-  const profileImageContainer = document.getElementById('profile-image-container');
-  const profileImage = document.getElementById('profile-image');
-  
-  if (profileImage) {
-    profileImage.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
-    profileImageContainer.style.display = 'block'; // Show the container
-  } else {
-    const img = document.createElement('img');
-    img.id = 'profile-image';
-    img.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
-    img.style.borderRadius = '50%';
-    img.style.width = '100px';
-    img.style.height = '100px';
-    img.style.objectFit = 'cover';
     
-    profileImageContainer.style.display = 'block'; // Show the container
-    profileImageContainer.appendChild(img); // Append profile image to container
-  }
-}
-
     // Setup password toggle for both sign-up and sign-in forms
     setupPasswordToggle('signup-toggle-icon', 'signup-password');
     setupPasswordToggle('signin-toggle-icon', 'signin-password');
