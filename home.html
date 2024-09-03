@@ -147,12 +147,17 @@
         </button>
       </div>
       <h5 id="sidebar-profile-name">User Name</h5>
+      <!-- Edit Button -->
+      <button class="btn btn-outline-secondary" id="editNameBtn">
+        <i class="fa-solid fa-pencil"></i> Edit
+      </button>
       <!-- Hidden File Input -->
       <input type="file" id="fileInput" style="display: none;" accept="image/*">
     </div>
   </div>
-   <!-- Crop Image Modal -->
-   <div id="cropImageModal" class="modal fade" tabindex="-1" aria-labelledby="cropImageModalLabel" aria-hidden="true">
+
+  <!-- Crop Image Modal -->
+  <div id="cropImageModal" class="modal fade" tabindex="-1" aria-labelledby="cropImageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -176,14 +181,12 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <!-- Cropper.js CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
-
   <!-- Cropper.js JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 
-  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, onAuthStateChanged, updateProfile as firebaseUpdateProfile } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
     import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
     
@@ -254,6 +257,7 @@
         });
     }
   
+    // Update Profile Function
     function updateProfile(photoURL, name) {
       document.getElementById('user-profile-img').src = photoURL;
       document.getElementById('sidebar-profile-img').src = photoURL;
@@ -274,11 +278,6 @@
         });
       }
     });
-  
-    window.toggleProfileSidebar = function() {
-      const sidebar = document.getElementById('profileSidebar');
-      sidebar.classList.toggle('active');
-    }
   
     window.getLocation = function() {
       const user = auth.currentUser;
@@ -461,6 +460,17 @@
     document.getElementById('fileInput').addEventListener('change', handleFileInput);
   
     document.getElementById('cropImageBtn').addEventListener('click', cropImage);
+  
+  </script>
+  
+  <script>
+    // Function to toggle profile sidebar
+   function toggleProfileSidebar() {
+      const sidebar = document.getElementById('profileSidebar');
+      sidebar.classList.toggle('active');
+    }
+    // Attach function to global window object
+    window.toggleProfileSidebar = toggleProfileSidebar;
   </script>
   
 </body>
