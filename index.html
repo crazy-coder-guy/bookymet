@@ -101,6 +101,11 @@
       <p class="signup-link">Don't have an account? <a href="#" class="switch-tab" data-tab="signup">Sign up</a></p>
     </form>
   </div>
+  <!-- Profile Image Container -->
+<div id="profile-image-container" style="display: none; text-align: center; margin-top: 20px;">
+  <img id="profile-image" src="" alt="Profile Image" style="border-radius: 50%; width: 100px; height: 100px; object-fit: cover;">
+</div>
+
 
   <!-- Notification Container -->
   <div id="notification-container" class="notification-container"></div>
@@ -320,7 +325,28 @@
         }
       });
     }
+    // Display User Profile Image
+function displayUserProfileImage(user) {
+  const profileImageContainer = document.getElementById('profile-image-container');
+  const profileImage = document.getElementById('profile-image');
   
+  if (profileImage) {
+    profileImage.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
+    profileImageContainer.style.display = 'block'; // Show the container
+  } else {
+    const img = document.createElement('img');
+    img.id = 'profile-image';
+    img.src = user.photoURL || 'default-profile-image.jpg'; // Fallback image if no photoURL
+    img.style.borderRadius = '50%';
+    img.style.width = '100px';
+    img.style.height = '100px';
+    img.style.objectFit = 'cover';
+    
+    profileImageContainer.style.display = 'block'; // Show the container
+    profileImageContainer.appendChild(img); // Append profile image to container
+  }
+}
+
     // Setup password toggle for both sign-up and sign-in forms
     setupPasswordToggle('signup-toggle-icon', 'signup-password');
     setupPasswordToggle('signin-toggle-icon', 'signin-password');
