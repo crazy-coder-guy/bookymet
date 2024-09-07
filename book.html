@@ -255,6 +255,8 @@
   <!-- Bootstrap JS (for carousel and other components) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"; 
     import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, onAuthStateChanged, updateProfile as firebaseUpdateProfile } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";import { getDatabase, ref, get, runTransaction, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
@@ -474,69 +476,109 @@
     }
 
     async function holdSlot(slotId) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const turfId = urlParams.get('turfId');
-      const slotRef = ref(database, 'ListedTurf/' + turfId + '/slots/' + slotId);
+  const urlParams = new URLSearchParams(window.location.search);
+  const turfId = urlParams.get('turfId');
+  const slotRef = ref(database, 'ListedTurf/' + turfId + '/slots/' + slotId);
 
+  try {
+    // Hold the slot
+    await update(slotRef, { isHeld: true, isHeldByUser: auth.currentUser.uid });
+
+    // Start a timeout to release the slot after 5 minutes
+    holdTimeout = setTimeout(async () => {
       try {
-        await update(slotRef, { isHeld: true });
-
-        holdTimeout = setTimeout(async () => {
-          try {
-            await update(slotRef, { isHeld: false });
-            if (selectedSlotId === slotId) {
-              document.querySelector(`.slot[data-slot-id="${slotId}"]`).classList.remove('selected');
-              selectedSlotId = null;
-              document.getElementById('selectedSlot').textContent = '';
-              document.getElementById('bookButton').disabled = true;
-            }
-          } catch (error) {
-            console.error('Error releasing held slot:', error);
-          }
-        }, 5 * 60 * 1000);
+        await update(slotRef, { isHeld: false, isHeldByUser: null });
+        if (selectedSlotId === slotId) {
+          document.querySelector(`.slot[data-slot-id="${slotId}"]`).classList.remove('selected');
+          selectedSlotId = null;
+          document.getElementById('selectedSlot').textContent = '';
+          document.getElementById('bookButton').disabled = true;
+        }
       } catch (error) {
-        console.error('Error holding slot:', error);
+        console.error('Error releasing held slot:', error);
       }
-    }
+    }, 1 * 60 * 1000);
 
-    async function bookSlot() {
-      if (!selectedSlotId) {
-        console.error('No slot selected.');
-        return;
-      }
+  } catch (error) {
+    console.error('Error holding slot:', error);
+  }
+}
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const turfId = urlParams.get('turfId');
-      const slotRef = ref(database, 'ListedTurf/' + turfId + '/slots/' + selectedSlotId);
+async function bookSlot() {
+  if (!selectedSlotId) {
+    console.error('No slot selected.');
+    return;
+  }
 
-      try {
-        await holdSlot(selectedSlotId);
+  const urlParams = new URLSearchParams(window.location.search);
+  const turfId = urlParams.get('turfId');
+  const slotRef = ref(database, 'ListedTurf/' + turfId + '/slots/' + selectedSlotId);
 
-        await runTransaction(slotRef, (slot) => {
-          if (slot) {
-            if (slot.isBooked) {
-              throw new Error('Slot is already booked.');
+  try {
+    const slotSnapshot = await get(slotRef);
+    if (!slotSnapshot.exists()) throw new Error('Slot does not exist.');
+
+    const slot = slotSnapshot.val();
+    const user = auth.currentUser;
+
+    if (slot.isBooked) throw new Error('Slot is already booked.');
+    if (slot.isHeld && slot.isHeldByUser !== user.uid) throw new Error('Slot is held by another user.');
+
+    // Hold the slot before proceeding to payment
+    await holdSlot(selectedSlotId);
+
+    const rate = slot.rate; // Ensure rate is fetched and converted properly
+    if (!rate) throw new Error('Rate not found for this slot.');
+
+    // Proceed with Razorpay payment
+    const options = {
+      key: 'rzp_test_h1cA5a6uRJNXGB', // Replace with your Razorpay key
+      amount: rate * 100, // Amount in paise
+      currency: 'INR',
+      name: 'Turf Booking',
+      description: 'Book your slot',
+      handler: async function (response) {
+        try {
+          await runTransaction(slotRef, (slot) => {
+            if (slot) {
+              if (slot.isBooked) throw new Error('Slot is already booked.');
+              if (slot.isHeld && slot.isHeldByUser !== user.uid) throw new Error('Slot is held by another user.');
+              slot.isBooked = true;
+              slot.isHeld = false;
+              slot.isHeldByUser = null;
+              return slot;
+            } else {
+              throw new Error('Slot does not exist.');
             }
-            if (slot.isHeld) {
-              throw new Error('Slot is currently held.');
-            }
-            slot.isBooked = true;
-            slot.isHeld = false;
-            return slot;
-          } else {
-            throw new Error('Slot does not exist.');
-          }
-        });
+          });
 
-        document.querySelector(`.slot[data-slot-id="${selectedSlotId}"]`).classList.add('booked');
-        document.querySelector(`.slot[data-slot-id="${selectedSlotId}"]`).classList.remove('selected');
-        selectedSlotId = null;
-        document.getElementById('selectedSlot').textContent = '';
-        document.getElementById('bookButton').disabled = true;
-      } catch (error) {
-        console.error('Error booking slot:', error);
+          document.querySelector(`.slot[data-slot-id="${selectedSlotId}"]`).classList.add('booked');
+          document.querySelector(`.slot[data-slot-id="${selectedSlotId}"]`).classList.remove('selected');
+          selectedSlotId = null;
+          document.getElementById('selectedSlot').textContent = '';
+          document.getElementById('bookButton').disabled = true;
+        } catch (error) {
+          console.error('Error booking slot:', error);
+        }
+      },
+      prefill: {
+        name: 'Your Name',
+        email: 'your-email@example.com',
+        contact: '9999999999'
+      },
+      theme: {
+        color: '#F37254'
       }
-    }
+    };
+
+    const paymentObject = new Razorpay(options);
+    paymentObject.open();
+
+  } catch (error) {
+    console.error('Error booking slot:', error);
+  }
+}
+
 
     function loadMap(latitude, longitude) {
       // Ensure latitude and longitude are numbers
