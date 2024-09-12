@@ -121,36 +121,78 @@
     
     }
 
+    .day-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* Optional: Add space between buttons */
+}
+
 .day-btn {
-  margin: 5px;
-  padding: 10px 15px;
-  flex: 1 1 auto; /* Allow buttons to grow and shrink as needed */
-  max-width: 120px; /* Limit the maximum width of the buttons */
+  flex: 1 1 22%; /* Default width for larger screens, adjust as needed */
+  max-width: 22%; /* Prevent buttons from growing too large */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  padding: 10px; /* Adjust padding as needed */
+  margin: 5px; /* Adjust margin as needed */
 }
 
 @media (max-width: 768px) {
+  .day-buttons-container {
+    flex-direction: column; /* Stack buttons vertically on small screens */
+  }
+  
   .day-btn {
-    flex: 1 1 5%; /* Make each button take up full width in mobile view */
-    max-width: none; /* Remove max-width restriction for mobile view */
+    flex: 1 1 auto; /* Make each button take full width of the container */
+    max-width:90px; /* Remove max-width restriction */
+    margin: 5px 0; /* Adjust margins for vertical spacing */
+    font-size: 15px;
+    text-align: center;
   }
 }
-
-
     @media (max-width: 768px) {
       .gallery-item img {
         display: none;
       }
 
       .carousel-item img {
-        height: 180px;
+        height: 200px;
         width: 100%;
+        border-radius: 25px;
       }
 
     }
     .btn-primary {
   width: 100%;
     }
+   
+    /* Custom CSS for Amenities */
+  #amenitiesList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
 
+  #amenitiesList li {
+    margin: 10px;
+    display: flex;
+    align-items: center;
+    font-size: 1.2rem;
+  }
+
+  #amenitiesList i {
+    margin-right: 10px;
+    color: #007bff; /* Icon color */
+  }
+
+  @media (max-width: 768px) {
+    #amenitiesList {
+      display: block;
+      gap: 10px;
+    }
+
+    #amenitiesList li {
+      margin: 10px 0;
+    }
+  }
     #map {
       height: 250px;
       width: 100%;
@@ -233,7 +275,13 @@
         </div>
       </div>
       <div class="col-lg-6">
-        <h3>Booking Details</h3>
+        <div id="amenitiesSection">
+          <h4>Amenities</h4>
+          <ul id="amenitiesList" class="d-flex flex-wrap">
+            <!-- Amenities will be inserted here -->
+          </ul>
+        </div>
+        <h3>Select Slot</h3>
 
         <div class="available-days-container">
           <!-- Available days will be inserted here -->
@@ -242,9 +290,9 @@
         <div class="slots-container" id="slotsContainer">
           <!-- Slots will be inserted here -->
         </div>
-        
         <div id="bookingSection" class="mt-4">
-          <button id="bookButton" class="btn btn-primary" disabled>Book Slot</button>
+          <!-- Razorpay Payment Button -->
+          <button id="bookButton" class="btn btn-primary" disabled onclick="openPaymentButton()">Book Slot</button>
           <p id="selectedSlot" class="mt-2">No slot selected</p>
         </div>
         <div id="map"></div>
@@ -312,63 +360,100 @@
     let holdTimeout = null;
 
     async function loadGallery() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const turfId = urlParams.get('turfId');
-      const turfRef = ref(database, 'ListedTurf/' + turfId);
-      const ownerDetailsRef = ref(database, 'TurfOwnerDetails/' + turfId);
+  const urlParams = new URLSearchParams(window.location.search);
+  const turfId = urlParams.get('turfId');
+  const turfRef = ref(database, 'ListedTurf/' + turfId);
+  const ownerDetailsRef = ref(database, 'TurfOwnerDetails/' + turfId);
 
-      try {
-        const turfSnapshot = await get(turfRef);
-        const ownerDetailsSnapshot = await get(ownerDetailsRef);
+  try {
+    const turfSnapshot = await get(turfRef);
+    const ownerDetailsSnapshot = await get(ownerDetailsRef);
 
-        if (turfSnapshot.exists() && ownerDetailsSnapshot.exists()) {
-          const turf = turfSnapshot.val();
-          const ownerDetails = ownerDetailsSnapshot.val();
-          const turfNameContainer = document.getElementById('turfName');
-          const mainImageContainer = document.getElementById('mainImage');
-          const carouselImagesContainer = document.getElementById('carouselImages');
-          const imageContainers = [
-            document.getElementById('image1'),
-            document.getElementById('image2'),
-            document.getElementById('image3')
-          ];
+    if (turfSnapshot.exists() && ownerDetailsSnapshot.exists()) {
+      const turf = turfSnapshot.val();
+      const ownerDetails = ownerDetailsSnapshot.val();
+      const turfNameContainer = document.getElementById('turfName');
+      const mainImageContainer = document.getElementById('mainImage');
+      const carouselImagesContainer = document.getElementById('carouselImages');
+      const imageContainers = [
+        document.getElementById('image1'),
+        document.getElementById('image2'),
+        document.getElementById('image3')
+      ];
+      const amenitiesList = document.getElementById('amenitiesList');
 
-          turfNameContainer.textContent = ownerDetails.turfName || 'Turf Name';
+      turfNameContainer.textContent = ownerDetails.turfName || 'Turf Name';
 
-          mainImageContainer.innerHTML = '';
-          carouselImagesContainer.innerHTML = '';
-          imageContainers.forEach(container => container.innerHTML = '');
+      mainImageContainer.innerHTML = '';
+      carouselImagesContainer.innerHTML = '';
+      imageContainers.forEach(container => container.innerHTML = '');
+      amenitiesList.innerHTML = '';
 
-          if (turf.images && turf.images.length > 0) {
-            const mainImageUrl = turf.images[0];
-            mainImageContainer.innerHTML = `<img src="${mainImageUrl}" alt="Main Turf Image">`;
+      if (turf.images && turf.images.length > 0) {
+        const mainImageUrl = turf.images[0];
+        mainImageContainer.innerHTML = `<img src="${mainImageUrl}" alt="Main Turf Image" class="img-fluid">`;
 
-            for (let i = 1; i <= Math.min(3, turf.images.length - 1); i++) {
-              imageContainers[i - 1].innerHTML = `<img src="${turf.images[i]}" alt="Additional Image ${i}">`;
-              carouselImagesContainer.innerHTML += `
-                <div class="carousel-item ${i === 1 ? 'active' : ''}">
-                  <img src="${turf.images[i]}" class="d-block w-100" alt="Additional Image ${i}">
-                </div>`;
-            }
-          } else {
-            mainImageContainer.innerHTML = '<p>No images available for this turf.</p>';
-            carouselImagesContainer.innerHTML = '<p>No images available for this turf.</p>';
-          }
-
-          if (turf.latitude && turf.longitude) {
-            loadMap(turf.latitude, turf.longitude);
-          } else {
-            document.getElementById('map').innerHTML = '<p>No map data available.</p>';
-          }
-        } else {
-          console.log('No data found for this turf.');
-          document.getElementById('mainImage').innerHTML = '<p>Data not found.</p>';
-          document.getElementById('carouselImages').innerHTML = '<p>Data not found.</p>';
+        for (let i = 1; i <= Math.min(3, turf.images.length - 1); i++) {
+          imageContainers[i - 1].innerHTML = `<img src="${turf.images[i]}" alt="Additional Image ${i}" class="img-fluid">`;
+          carouselImagesContainer.innerHTML += `
+            <div class="carousel-item ${i === 1 ? 'active' : ''}">
+              <img src="${turf.images[i]}" class="d-block w-100" alt="Additional Image ${i}">
+            </div>`;
         }
-      } catch (error) {
-        console.error('Error loading gallery:', error);
+      } else {
+        mainImageContainer.innerHTML = '<p>No images available for this turf.</p>';
+        carouselImagesContainer.innerHTML = '<p>No images available for this turf.</p>';
       }
+
+      if (turf.latitude && turf.longitude) {
+        loadMap(turf.latitude, turf.longitude);
+      } else {
+        document.getElementById('map').innerHTML = '<p>No map data available.</p>';
+      }
+
+      // Load amenities with icons
+      if (turf.amenities && Array.isArray(turf.amenities)) {
+        turf.amenities.forEach(amenity => {
+          const listItem = document.createElement('li');
+          let icon = '';
+
+          // Map amenities to icons
+          switch (amenity.toLowerCase()) {
+            case 'wifi':
+              icon = '<i class="fas fa-wifi"></i>';
+              break;
+            case 'parking':
+              icon = '<i class="fas fa-parking"></i>';
+              break;
+            case 'pool':
+              icon = '<i class="fas fa-swimming-pool"></i>';
+              break;
+            case 'gym':
+              icon = '<i class="fas fa-dumbbell"></i>';
+              break;
+            case 'pet friendly':
+              icon = '<i class="fas fa-paw"></i>';
+              break;
+            default:
+              icon = '<i class="fas fa-cogs"></i>'; // Default icon
+          }
+
+          listItem.innerHTML = `${icon} ${amenity}`;
+          amenitiesList.appendChild(listItem);
+        });
+      } else {
+        amenitiesList.innerHTML = '<li>No amenities available.</li>';
+      }
+    } else {
+      console.log('No data found for this turf.');
+      document.getElementById('mainImage').innerHTML = '<p>Data not found.</p>';
+      document.getElementById('carouselImages').innerHTML = '<p>Data not found.</p>';
+      document.getElementById('amenitiesSection').innerHTML = '<p>No data found.</p>';
     }
+  } catch (error) {
+    console.error('Error loading gallery:', error);
+  }
+}
 
     async function loadAvailableDays() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -499,10 +584,10 @@
         console.error('Error holding slot:', error);
       }
     }
-
     async function bookSlot() {
   if (!selectedSlotId) {
     console.error('No slot selected.');
+    alert('Please select a slot before booking.');
     return;
   }
 
@@ -525,64 +610,55 @@
     const rate = slot.rate;
     if (!rate) throw new Error('Rate not found for this slot.');
 
+    // Create a Razorpay order
+    const response = await fetch('https://your-server-domain/create-order', { // Change this to your server endpoint
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer YOUR_SERVER_API_KEY' // Replace with your server API key
+      },
+      body: JSON.stringify({
+        amount: rate * 100, // Razorpay expects amount in paise
+        currency: 'INR',
+        receipt: `receipt_${Date.now()}`,
+        payment_capture: 1
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create order. Response status: ' + response.status);
+    }
+
+    const orderData = await response.json();
+    if (!orderData || !orderData.id) {
+      throw new Error('Failed to retrieve order ID.');
+    }
+
     const options = {
-      key: 'rzp_test_h1cA5a6uRJNXGB',
-      amount: rate * 100,
-      currency: 'INR',
+      key: 'LwXJYtxvzmAP8D', // Replace with your Razorpay key
+      amount: orderData.amount,
+      currency: orderData.currency,
       name: 'Turf Booking',
-      description: 'Book your slot',
+      description: 'Book your slot now',
+      order_id: orderData.id,
       handler: async function (response) {
+        // Payment successful
         try {
-          console.log('Payment response:', response); // Log payment response
-
-          // Simulate payment verification
-          const isPaymentVerified = true; // Replace with actual server-side verification
-
-          if (!isPaymentVerified) {
-            throw new Error('Payment verification failed.');
-          }
-
-          await runTransaction(slotRef, (slot) => {
-            if (slot) {
-              if (slot.isBooked) {
-                throw new Error('Slot is already booked.');
-              }
-              if (slot.isHeld && slot.isHeldByUser !== user.uid) {
-                throw new Error('Slot is held by another user.');
-              }
-              slot.isBooked = true;
-              slot.isHeld = false;
-              slot.isHeldByUser = null;
-              return slot;
-            } else {
-              throw new Error('Slot does not exist.');
-            }
-          });
-
-          console.log('Slot booked successfully'); // Log successful booking
-
-          const bookedSlot = document.querySelector(`.slot[data-slot-id="${selectedSlotId}"]`);
-          bookedSlot.classList.add('booked');
-          bookedSlot.classList.remove('selected');
-          selectedSlotId = null;
-          document.getElementById('selectedSlot').textContent = '';
-          document.getElementById('bookButton').disabled = true;
-
-          // Redirect to the thank you page
-          window.location.href = 'home.html'; // Ensure this URL is correct
-
+          await update(ref(database, 'ListedTurf/' + turfId + '/slots/' + selectedSlotId), { isBooked: true });
+          alert('Booking successful!');
+          // Additional logic on successful payment
         } catch (error) {
-          console.error('Error booking slot:', error);
-          alert(`Error: ${error.message}`); // Notify the user
+          console.error('Error updating slot status:', error);
+          alert('Error booking slot. Please try again.');
         }
       },
       prefill: {
-        name: 'Your Name',
-        email: 'your-email@example.com',
-        contact: '9999999999'
+        name: user.displayName || '',
+        email: user.email || '',
+        contact: '' // Add contact info if available
       },
       theme: {
-        color: '#F37254'
+        color: '#3399cc'
       }
     };
 
@@ -590,8 +666,8 @@
     paymentObject.open();
 
   } catch (error) {
-    console.error('Slot:', error);
-    alert(`Error: ${error.message}`); // Notify the user
+    console.error('Error preparing payment:', error);
+    alert(`Error: ${error.message}`);
   }
 }
 
@@ -620,6 +696,7 @@
       loadGallery();
       loadAvailableDays();
     });
+    
     
 
     document.getElementById('bookButton').addEventListener('click', bookSlot);
