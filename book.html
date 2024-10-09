@@ -82,36 +82,41 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    .slots-container {
-      margin-top: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
+    /* Container for the slots */
+#slotsContainer {
+  display: flex;           /* Use flexbox for layout */
+  flex-wrap: wrap;        /* Allow wrapping to new lines if necessary */
+  gap: 10px;              /* Space between the slots */
+  justify-content: flex-start; /* Align items to the start */
+}
 
-    .slot {
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      padding: 10px;
-      text-align: center;
-      background-color: #f8f9fa;
-      cursor: pointer;
-      flex: 1 1 120px;
-      max-width: 100px;
-    }
+/* Style for each slot button */
+.slot {
+  background-color: #f0f0f0; /* Light gray background */
+  border: 1px solid #ccc;    /* Light border */
+  border-radius: 5px;        /* Rounded corners */
+  padding: 5px 10px;         /* Small padding for size */
+  cursor: pointer;            /* Pointer cursor on hover */
+  transition: background-color 0.3s; /* Smooth background color transition */
+}
 
-    .slot.selected {
-      background-color: #28a745;
-      color: white;
-      border: 1px solid #28a745;
-    }
+/* Style for booked and held slots */
+.slot.booked {
+  background-color: #e74c3c; /* Red background for booked slots */
+  color: white;               /* White text color */
+  pointer-events: none;       /* Disable click on booked slots */
+}
 
-    .slot.booked {
-      background-color: #6c757d;
-      color: white;
-      cursor: not-allowed;
-      border: 1px solid #6c757d;
-    }
+.slot.held {
+  background-color: #f39c12;  /* Orange background for held slots */
+  color: white;                /* White text color */
+}
+
+/* Hover effect for slots */
+.slot:hover:not(.booked):not(.held) {
+  background-color: #dcdcdc; /* Darker gray on hover */
+}
+
     .available-days-container {
     display: flex;
     flex-wrap: wrap;
@@ -307,9 +312,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"; 
-    import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, onAuthStateChanged, updateProfile as firebaseUpdateProfile } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-    import { getDatabase, ref, get, runTransaction, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
-    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    import { getStorage } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAwgq5oTikQJ5WeCGkgpcCSyMwXunAWdrE",
@@ -357,9 +362,9 @@
     });
 
     let selectedSlotId = null;
-    let holdTimeout = null;
+let holdTimeout = null;
 
-    async function loadGallery() {
+async function loadGallery() {
   const urlParams = new URLSearchParams(window.location.search);
   const turfId = urlParams.get('turfId');
   const turfRef = ref(database, 'ListedTurf/' + turfId);
@@ -455,136 +460,146 @@
   }
 }
 
-    async function loadAvailableDays() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const turfId = urlParams.get('turfId');
-      const slotsRef = ref(database, 'ListedTurf/' + turfId + '/slots');
+async function loadAvailableDays() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const turfId = urlParams.get('turfId');
+  const slotsRef = ref(database, 'ListedTurf/' + turfId + '/slots');
 
-      try {
-        const slotsSnapshot = await get(slotsRef);
-        const availableDaysContainer = document.querySelector('.available-days-container');
-        availableDaysContainer.innerHTML = '';
+  try {
+    const slotsSnapshot = await get(slotsRef);
+    const availableDaysContainer = document.querySelector('.available-days-container');
+    availableDaysContainer.innerHTML = '';
 
-        if (slotsSnapshot.exists()) {
-          const slots = slotsSnapshot.val();
-          const availableDays = new Set();
+    if (slotsSnapshot.exists()) {
+      const slots = slotsSnapshot.val();
+      const availableDays = new Set();
 
-          for (const slotKey in slots) {
-            const slot = slots[slotKey];
-            if (slot.day) {
-              availableDays.add(slot.day);
-            }
-          }
-
-          availableDays.forEach(day => {
-            const dayButton = document.createElement('button');
-            dayButton.type = 'button';
-            dayButton.className = 'btn btn-secondary day-btn';
-            dayButton.setAttribute('data-day', day);
-            dayButton.textContent = day;
-            availableDaysContainer.appendChild(dayButton);
-          });
-
-          document.querySelectorAll('.day-btn').forEach(button => {
-            button.addEventListener('click', (event) => {
-              const day = event.target.getAttribute('data-day');
-              loadSlots(day);
-              document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
-              event.target.classList.add('active');
-            });
-          });
-        } else {
-          availableDaysContainer.innerHTML = '<p>No days available.</p>';
+      for (const slotKey in slots) {
+        const slot = slots[slotKey];
+        if (slot.day) {
+          availableDays.add(slot.day);
         }
-      } catch (error) {
-        console.error('Error loading available days:', error);
       }
-    }
 
-    async function loadSlots(day) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const turfId = urlParams.get('turfId');
-      const slotsRef = ref(database, 'ListedTurf/' + turfId + '/slots');
-
-      try {
-        const slotsSnapshot = await get(slotsRef);
-        const slotsContainer = document.getElementById('slotsContainer');
-        slotsContainer.innerHTML = '';
-
-        if (slotsSnapshot.exists()) {
-          const slots = slotsSnapshot.val();
-          let slotsHtml = '';
-
-          for (const slotKey in slots) {
-            const slot = slots[slotKey];
-            if (slot.day === day) {
-              const startTime = slot.startTime;
-              const slotId = slotKey;
-              const isBooked = slot.isBooked || false;
-              const isHeld = slot.isHeld || false;
-              slotsHtml += 
-                `<div class="slot ${isBooked ? 'booked' : ''} ${isHeld ? 'held' : ''}" data-slot-id="${slotId}">
-                  ${startTime}
-                </div>`;
-            }
-          }
-
-          slotsContainer.innerHTML = slotsHtml || '<p>No slots available for this day.</p>';
-
-          document.querySelectorAll('.slot:not(.booked):not(.held)').forEach(slot => {
-            slot.addEventListener('click', (event) => {
-              selectSlot(event.target);
-            });
-          });
-        } else {
-          slotsContainer.innerHTML = '<p>No slots available for this day.</p>';
-        }
-      } catch (error) {
-        console.error('Error loading slots:', error);
-      }
-    }
-
-    async function selectSlot(slotElement) {
-      document.querySelectorAll('.slot').forEach(slot => {
-        slot.classList.remove('selected');
+      availableDays.forEach(day => {
+        const dayButton = document.createElement('button');
+        dayButton.type = 'button';
+        dayButton.className = 'btn btn-secondary day-btn';
+        dayButton.setAttribute('data-day', day);
+        dayButton.textContent = day;
+        availableDaysContainer.appendChild(dayButton);
       });
 
-      slotElement.classList.add('selected');
-      selectedSlotId = slotElement.getAttribute('data-slot-id');
-      document.getElementById('selectedSlot').textContent = `Selected slot: ${slotElement.textContent}`;
-
-      document.getElementById('bookButton').disabled = false;
+      document.querySelectorAll('.day-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const day = event.target.getAttribute('data-day');
+          loadSlots(day);
+          document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
+          event.target.classList.add('active');
+        });
+      });
+    } else {
+      availableDaysContainer.innerHTML = '<p>No days available.</p>';
     }
+  } catch (error) {
+    console.error('Error loading available days:', error);
+  }
+}
 
-    async function holdSlot(slotId) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const turfId = urlParams.get('turfId');
-      const slotRef = ref(database, 'ListedTurf/' + turfId + '/slots/' + slotId);
+async function loadSlots(day) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const turfId = urlParams.get('turfId');
+  const slotsRef = ref(database, 'ListedTurf/' + turfId + '/slots');
 
-      try {
-        // Hold the slot
-        await update(slotRef, { isHeld: true, isHeldByUser: auth.currentUser.uid });
+  try {
+    const slotsSnapshot = await get(slotsRef);
+    const slotsContainer = document.getElementById('slotsContainer');
+    slotsContainer.innerHTML = '';
 
-        // Start a timeout to release the slot after 5 minutes
-        holdTimeout = setTimeout(async () => {
-          try {
-            await update(slotRef, { isHeld: false, isHeldByUser: null });
-            if (selectedSlotId === slotId) {
-              document.querySelector(`.slot[data-slot-id="${slotId}"]`).classList.remove('selected');
-              selectedSlotId = null;
-              document.getElementById('selectedSlot').textContent = '';
-              document.getElementById('bookButton').disabled = true;
-            }
-          } catch (error) {
-            console.error('Error releasing held slot:', error);
-          }
-        }, 1 * 60 * 1000); // 5 minutes
+    if (slotsSnapshot.exists()) {
+      const slots = slotsSnapshot.val();
+      let slotsHtml = '';
 
-      } catch (error) {
-        console.error('Error holding slot:', error);
+      for (const slotKey in slots) {
+        const slot = slots[slotKey];
+        if (slot.day === day) {
+          const startTime = slot.startTime;
+          const endTime = slot.endTime;
+          const slotId = slotKey;
+          const isBooked = slot.isBooked || false;
+          const isHeld = slot.isHeld || false;
+          
+          slotsHtml += 
+            `<div class="slot ${isBooked ? 'booked' : ''} ${isHeld ? 'held' : ''}" data-slot-id="${slotId}" data-rate="${slot.rate}">
+              ${startTime} - ${endTime}
+            </div>`;
+        }
       }
+
+      slotsContainer.innerHTML = slotsHtml || '<p>No slots available for this day.</p>';
+
+      document.querySelectorAll('.slot:not(.booked):not(.held)').forEach(slot => {
+        slot.addEventListener('click', (event) => {
+          selectSlot(event.target);
+        });
+      });
+    } else {
+      slotsContainer.innerHTML = '<p>No slots available for this day.</p>';
     }
-    async function bookSlot() {
+  } catch (error) {
+    console.error('Error loading slots:', error);
+  }
+}
+
+async function selectSlot(slotElement) {
+  document.querySelectorAll('.slot').forEach(slot => {
+    slot.classList.remove('selected');
+  });
+
+  slotElement.classList.add('selected');
+  selectedSlotId = slotElement.getAttribute('data-slot-id');
+  document.getElementById('selectedSlot').textContent = `Selected slot: ${slotElement.textContent}`;
+
+  document.getElementById('bookButton').disabled = false;
+}
+
+async function holdSlot(slotId) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const turfId = urlParams.get('turfId');
+  const slotRef = ref(database, 'ListedTurf/' + turfId + '/slots/' + slotId);
+
+  try {
+    // Hold the slot
+    await update(slotRef, { isHeld: true, isHeldByUser: auth.currentUser.uid });
+
+    // Clear any existing timeout before setting a new one
+    if (holdTimeout) {
+      clearTimeout(holdTimeout);
+    }
+
+    // Start a timeout to release the slot after 5 minutes
+    holdTimeout = setTimeout(async () => {
+      console.log('Releasing held slot:', slotId);
+      try {
+        await update(slotRef, { isHeld: false, isHeldByUser: null });
+        console.log('Slot released successfully');
+        if (selectedSlotId === slotId) {
+          document.querySelector(`.slot[data-slot-id="${slotId}"]`).classList.remove('selected');
+          selectedSlotId = null;
+          document.getElementById('selectedSlot').textContent = '';
+          document.getElementById('bookButton').disabled = true;
+        }
+      } catch (error) {
+        console.error('Error releasing held slot:', error);
+      }
+    },  5 * 50 * 1000); // Set to 5 minutes
+
+  } catch (error) {
+    console.error('Error holding slot:', error);
+  }
+}
+
+async function bookSlot() {
   if (!selectedSlotId) {
     console.error('No slot selected.');
     alert('Please select a slot before booking.');
@@ -607,69 +622,47 @@
 
     await holdSlot(selectedSlotId);
 
-    const rate = slot.rate;
-    if (!rate) throw new Error('Rate not found for this slot.');
+    // Fetch rate from the selected slot
+    const slotRate = slot.rate; // Assuming rate is in the slot object
+    const amount = slotRate * 100; // Convert to paise
 
-    // Create a Razorpay order
-    const response = await fetch('https://your-server-domain/create-order', { // Change this to your server endpoint
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer YOUR_SERVER_API_KEY' // Replace with your server API key
-      },
-      body: JSON.stringify({
-        amount: rate * 100, // Razorpay expects amount in paise
-        currency: 'INR',
-        receipt: `receipt_${Date.now()}`,
-        payment_capture: 1
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to create order. Response status: ' + response.status);
-    }
-
-    const orderData = await response.json();
-    if (!orderData || !orderData.id) {
-      throw new Error('Failed to retrieve order ID.');
-    }
-
+    // Integrate Razorpay payment gateway here
     const options = {
-      key: 'LwXJYtxvzmAP8D', // Replace with your Razorpay key
-      amount: orderData.amount,
-      currency: orderData.currency,
+      key: 'rzp_live_jjHAr3caUNUsJy', // Replace with your Razorpay Key ID
+      amount: amount, // Amount in paise
+      currency: 'INR',
       name: 'Turf Booking',
-      description: 'Book your slot now',
-      order_id: orderData.id,
+      description: 'Booking for Turf',
       handler: async function (response) {
         // Payment successful
-        try {
-          await update(ref(database, 'ListedTurf/' + turfId + '/slots/' + selectedSlotId), { isBooked: true });
-          alert('Booking successful!');
-          // Additional logic on successful payment
-        } catch (error) {
-          console.error('Error updating slot status:', error);
-          alert('Error booking slot. Please try again.');
-        }
+        await update(ref(database, 'ListedTurf/' + turfId + '/slots/' + selectedSlotId), { 
+          isBooked: true,
+          isHeld: false, // Release the hold
+          isHeldByUser: null 
+        });
+        alert('Booking successful!');
       },
       prefill: {
-        name: user.displayName || '',
+        name: user.displayName || 'Guest',
         email: user.email || '',
-        contact: '' // Add contact info if available
+        contact: '9999999999' // Replace with user contact number if available
       },
       theme: {
-        color: '#3399cc'
+        color: '#F37254' // Change to your preferred theme color
       }
     };
 
-    const paymentObject = new Razorpay(options);
-    paymentObject.open();
-
+    const razorpay = new Razorpay(options);
+    razorpay.open();
   } catch (error) {
-    console.error('Error preparing payment:', error);
+    console.error('Error preparing booking:', error);
     alert(`Error: ${error.message}`);
   }
 }
+
+// Call loadGallery and loadAvailableDays when the page loads
+loadGallery();
+loadAvailableDays();
 
     function loadMap(latitude, longitude) {
       // Ensure latitude and longitude are numbers
@@ -696,11 +689,9 @@
       loadGallery();
       loadAvailableDays();
     });
-    
-    
 
     document.getElementById('bookButton').addEventListener('click', bookSlot);
-  </script>
+</script>
 
 </body>
 
